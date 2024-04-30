@@ -64,6 +64,13 @@ public class TelegramImpl implements RobotMessenger {
      * @des Telegram电报机器人传送讯息方法
      * @date 2022/12/20
      */
+    /**
+     * Signs and sends the given content using the provided token and RestTemplate.
+     *
+     * @param restTemplate The RestTemplate instance used for sending the request.
+     * @param token The token used for authentication.
+     * @param content The content to be sent.
+     */
     private void signAndSend(RestTemplate restTemplate, String token, String content) {
         try {
             JSONObject jsonObject = new JSONObject();
@@ -75,7 +82,26 @@ public class TelegramImpl implements RobotMessenger {
             log.warn("robot send failed, cause: " + e.getMessage());
         }
     }
+private static final String PARSE_MODE = "parse_mode";
+private static final String HTML = "html";
 
+private void signAndSend1(RestTemplate restTemplate, String token, String content) {
+    if (restTemplate == null || token == null || content == null) {
+        throw new IllegalArgumentException("Arguments cannot be null");
+    }
+    try {
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put(PARSE_MODE, HTML);
+        jsonObject.put("text", content);
+        ResponseEntity<JSONObject> responseEntity = restTemplate.postForEntity(token, jsonObject, JSONObject.class);
+        if (!responseEntity.getStatusCode().is2xxSuccessful()) {
+            throw new RuntimeException("Request failed with status code: " + responseEntity.getStatusCode());
+        }
+        log.info("robot result: {}", responseEntity.getBody());
+    } catch (Exception e) {
+        log.warn("robot send failed, cause: {}", e.toString());
+    }
+}
     @Override
     public void sendMessage(RestTemplate restTemplate, String token, String secret, Expression messageTemplate, Message msg) {
         String content = messageTemplate.getValue(ctx, msg, String.class);
